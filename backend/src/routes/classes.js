@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { body, param, query, validationResult } from 'express-validator';
 import { db } from '../config/firebase.js';
 import { requireAuth } from '../middleware/auth.js';
+import { toJSONSafe } from '../lib/serializeFirestore.js';
 
 const router = Router();
 
@@ -27,7 +28,7 @@ router.get(
 
       const snapshot = await q.limit(200).get();
       const classes = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
-      res.json(classes);
+      res.json(toJSONSafe(classes));
     } catch (err) {
       console.error(err);
       res.status(500).json({ error: 'Erro ao listar turmas' });
@@ -48,7 +49,7 @@ router.get('/:id', requireAuth(), param('id').notEmpty(), async (req, res) => {
     const studentsSnap = await doc.ref.collection('students').get();
     classData.students = studentsSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
 
-    res.json(classData);
+    res.json(toJSONSafe(classData));
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Erro ao buscar turma' });

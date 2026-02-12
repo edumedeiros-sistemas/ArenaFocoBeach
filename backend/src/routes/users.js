@@ -3,23 +3,12 @@ import { body, param, validationResult } from 'express-validator';
 import { getAuth } from 'firebase-admin/auth';
 import { db } from '../config/firebase.js';
 import { requireAuth } from '../middleware/auth.js';
+import { toJSONSafe } from '../lib/serializeFirestore.js';
 
 const router = Router();
 // Tipo de usuário (permissões no sistema) – só outro admin pode alterar
 const ROLES = ['admin', 'instructor', 'student'];
 // Papéis são configuráveis em /settings/papeis; aceitamos qualquer string curta
-
-/** Converte doc do Firestore em objeto JSON-safe (Timestamps → ISO string) para evitar 500 em res.json() */
-function toJSONSafe(data) {
-  if (!data || typeof data !== 'object') return data;
-  const out = {};
-  for (const [k, v] of Object.entries(data)) {
-    if (v && typeof v.toDate === 'function') out[k] = v.toDate().toISOString();
-    else if (Array.isArray(v)) out[k] = v.map((item) => (item && typeof item === 'object' && typeof item.toDate === 'function' ? item.toDate().toISOString() : item));
-    else out[k] = v;
-  }
-  return out;
-}
 
 const TIME_REGEX = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
 function validateSchedule(schedule) {
@@ -46,7 +35,7 @@ router.get(
       if (req.query.role) q = q.where('role', '==', req.query.role);
       const snapshot = await q.limit(200).get();
       const users = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
-      res.json(users);
+      res.json(toJSONSafe(users));
     } catch (err) {
       console.error(err);
       res.status(500).json({ error: 'Erro ao listar usuários' });
@@ -92,7 +81,7 @@ router.patch(
       if (req.body.papel !== undefined) update.papel = req.body.papel;
       await ref.update(update);
       const doc = await ref.get();
-      res.json({ id: doc.id, ...doc.data() });
+      res.json(toJSONSafe({ id: doc.id, ...doc.data() }));
     } catch (err) {
       console.error(err);
       res.status(500).json({ error: 'Erro ao atualizar perfil' });
@@ -281,7 +270,7 @@ router.patch(
       if (req.body.professorId !== undefined) update.professorId = req.body.professorId ? req.body.professorId.trim() : null;
       await ref.update(update);
       const updated = await ref.get();
-      res.json({ id: updated.id, ...updated.data() });
+      res.json(toJSONSafe({ id: updated.id, ...updated.data() }));
     } catch (err) {
       console.error(err);
       res.status(500).json({ error: 'Erro ao atualizar usuário' });

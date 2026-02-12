@@ -3,6 +3,7 @@ import { body, param, validationResult } from 'express-validator';
 import { db, rtdb } from '../config/firebase.js';
 import { requireAuth } from '../middleware/auth.js';
 import { isCourtInStudentClassNow } from '../lib/studentSchedule.js';
+import { toJSONSafe } from '../lib/serializeFirestore.js';
 
 const router = Router();
 const RTDB_COURTS = 'courts';
@@ -54,7 +55,7 @@ router.get('/', requireAuth(), async (req, res) => {
       };
     });
 
-    res.json(withStatus);
+    res.json(toJSONSafe(withStatus));
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Erro ao listar quadras' });
@@ -107,7 +108,7 @@ router.get('/:id', requireAuth(), param('id').notEmpty(), async (req, res) => {
       .get();
     court.bookings = bookingsSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
 
-    res.json(court);
+    res.json(toJSONSafe(court));
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Erro ao buscar quadra' });

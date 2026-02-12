@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { body, param, query, validationResult } from 'express-validator';
 import { db } from '../config/firebase.js';
 import { requireAuth } from '../middleware/auth.js';
+import { toJSONSafe } from '../lib/serializeFirestore.js';
 
 const router = Router();
 
@@ -33,7 +34,7 @@ router.get(
 
       const snapshot = await q.get();
       const list = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
-      res.json(list);
+      res.json(toJSONSafe(list));
     } catch (err) {
       console.error(err);
       res.status(500).json({ error: 'Erro ao listar pagamentos' });

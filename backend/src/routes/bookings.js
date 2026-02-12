@@ -3,6 +3,7 @@ import { body, param, query, validationResult } from 'express-validator';
 import { db } from '../config/firebase.js';
 import { requireAuth } from '../middleware/auth.js';
 import { rentalConflictsWithStudentSchedule } from '../lib/studentSchedule.js';
+import { toJSONSafe } from '../lib/serializeFirestore.js';
 
 const router = Router();
 
@@ -24,7 +25,7 @@ router.get(
       if (req.query.to) q = q.where('start', '<=', new Date(req.query.to));
       const snapshot = await q.limit(100).get();
       const list = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
-      res.json(list);
+      res.json(toJSONSafe(list));
     } catch (err) {
       console.error(err);
       res.status(500).json({ error: 'Erro ao listar reservas' });
