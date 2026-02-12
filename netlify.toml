@@ -1,0 +1,13 @@
+# Deploy do frontend Beach Flow no Netlify
+# O backend precisa estar hospedado em outro serviço (Render, Railway, etc.)
+
+[build]
+  base    = "frontend"
+  command = "npm run build"
+  publish = "dist"
+
+# SPA: todas as rotas caem no index.html (React Router)
+[[redirects]]
+  from    = "/*"
+  to      = "/index.html"
+  status  = 200

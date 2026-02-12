@@ -77,6 +77,8 @@ Use as chaves do seu projeto Firebase (Config do projeto no console):
 
 ### 4. Rodar localmente
 
+**Importante:** Quadras, Agenda, Usuários e demais telas dependem da API. Sem o backend rodando, essas páginas exibem erro. Suba sempre os dois:
+
 **Terminal 1 – Backend:**
 
 ```bash
@@ -92,6 +94,8 @@ cd frontend && npm run dev
 ```
 
 App em: http://localhost:5173
+
+Se não houver `VITE_API_URL` no `.env` do frontend, o app usa por padrão `http://localhost:4000`. Em produção, defina `VITE_API_URL` com a URL da sua API.
 
 ### 5. Primeiro uso
 
@@ -117,6 +121,37 @@ App em: http://localhost:5173
 - **Campeonatos:** Criação, grupos, chaves, inscrições, resultados e bracket.
 - **Ligas:** Temporadas, pontuação configurável, tabela de classificação e rodadas.
 - **Financeiro:** Mensalidades, aluguéis, taxas de campeonato/liga, relatórios e integração com gateways de pagamento (Stripe/PagSeguro).
+
+## Deploy no Netlify (frontend)
+
+O Netlify hospeda só o **frontend** (o build estático). A API (backend) precisa estar em outro serviço (Render, Railway, Fly.io, etc.) para Quadras, Agenda, Usuários e demais telas funcionarem.
+
+### 1. Deploy do frontend no Netlify
+
+1. Conecte o repositório GitHub ao Netlify.
+2. O projeto já tem `netlify.toml` na raiz: o Netlify usa `base = "frontend"`, `command = "npm run build"` e `publish = "dist"`. Não precisa alterar.
+3. Em **Site settings → Environment variables**, adicione todas as variáveis que o frontend usa (as que começam com `VITE_`):
+   - **VITE_API_URL** = URL da sua API em produção (ex.: `https://sua-api.onrender.com`). **Obrigatório** para as telas funcionarem.
+   - **VITE_FIREBASE_API_KEY**, **VITE_FIREBASE_AUTH_DOMAIN**, **VITE_FIREBASE_PROJECT_ID**, **VITE_FIREBASE_STORAGE_BUCKET**, **VITE_FIREBASE_MESSAGING_SENDER_ID**, **VITE_FIREBASE_APP_ID**, **VITE_FIREBASE_DATABASE_URL** (valores do Firebase Console).
+4. Faça o deploy. O site ficará em algo como `https://seu-site.netlify.app`.
+
+### 2. Deploy do backend (ex.: Render)
+
+1. Crie um serviço **Web Service** no [Render](https://render.com) (ou Railway, Fly.io, etc.) usando o mesmo repositório.
+2. Configure: **Root Directory** = `backend`, **Build Command** = `npm install`, **Start Command** = `npm start` (ou `node src/index.js`).
+3. Nas variáveis de ambiente do backend, defina:
+   - **FRONTEND_URL** = URL do seu site no Netlify (ex.: `https://seu-site.netlify.app`). Assim o CORS aceita requisições do frontend.
+   - Variáveis do Firebase (project id, private key, client email, etc.) conforme `backend/.env.example`.
+4. Após o deploy, copie a URL do backend (ex.: `https://beach-flow-api.onrender.com`) e use como **VITE_API_URL** no Netlify (e faça um novo deploy do frontend se já tiver deployado).
+
+### 3. Resumo
+
+| Onde     | Variável importante |
+|----------|---------------------|
+| Netlify  | `VITE_API_URL` = URL do backend em produção |
+| Backend  | `FRONTEND_URL` = URL do site no Netlify |
+
+Sem isso, o frontend no Netlify não consegue falar com a API e as telas (Quadras, Agenda, Usuários) dão erro.
 
 ## Segurança
 

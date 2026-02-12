@@ -17,7 +17,8 @@ import agendaRouter from './routes/agenda.js';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+// Sem barra no final para o CORS bater exatamente com a origem do navegador
+const FRONTEND_URL = (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, '');
 
 app.use(helmet());
 app.use(cors({ origin: FRONTEND_URL, credentials: true }));
