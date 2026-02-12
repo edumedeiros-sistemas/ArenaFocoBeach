@@ -4,12 +4,14 @@ service cloud.firestore {
     function isAuth() {
       return request.auth != null;
     }
+    function userDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
     function isAdmin() {
-      return isAuth() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      return isAuth() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && userDoc().data.role == 'admin';
     }
     function isInstructor() {
-      let role = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
-      return isAuth() && (role == 'instructor' || role == 'admin');
+      return isAuth() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && (userDoc().data.role == 'instructor' || userDoc().data.role == 'admin');
     }
     function isOwner(uid) {
       return isAuth() && request.auth.uid == uid;
