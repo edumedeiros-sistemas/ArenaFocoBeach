@@ -9,6 +9,18 @@ const router = Router();
 const ROLES = ['admin', 'instructor', 'student'];
 // Papéis são configuráveis em /settings/papeis; aceitamos qualquer string curta
 
+/** Converte doc do Firestore em objeto JSON-safe (Timestamps → ISO string) para evitar 500 em res.json() */
+function toJSONSafe(data) {
+  if (!data || typeof data !== 'object') return data;
+  const out = {};
+  for (const [k, v] of Object.entries(data)) {
+    if (v && typeof v.toDate === 'function') out[k] = v.toDate().toISOString();
+    else if (Array.isArray(v)) out[k] = v.map((item) => (item && typeof item === 'object' && typeof item.toDate === 'function' ? item.toDate().toISOString() : item));
+    else out[k] = v;
+  }
+  return out;
+}
+
 const TIME_REGEX = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
 function validateSchedule(schedule) {
   if (!Array.isArray(schedule)) return 'schedule deve ser um array';
@@ -47,7 +59,8 @@ router.get('/me', requireAuth(), async (req, res) => {
   try {
     const doc = await db.collection('users').doc(req.uid).get();
     if (!doc.exists) return res.status(404).json({ error: 'Perfil não encontrado' });
-    res.json({ id: doc.id, ...doc.data() });
+    const data = toJSONSafe(doc.data());
+    res.json({ id: doc.id, ...data });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Erro ao buscar perfil' });
