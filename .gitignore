@@ -1,0 +1,31 @@
+# Dependências
+node_modules/
+
+# Variáveis de ambiente e segredos
+.env
+.env.local
+.env.*.local
+*.env
+
+# Firebase / chaves
+serviceAccountKey.json
+*-firebase-adminsdk-*.json
+
+# Build e artefatos
+dist/
+build/
+coverage/
+
+# Logs e sistema
+*.log
+.DS_Store
+Thumbs.db
+
+# IDE / editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Cursor / temporários (opcional)
+.cursor/

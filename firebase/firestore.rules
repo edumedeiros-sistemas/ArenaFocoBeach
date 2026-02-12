@@ -1,0 +1,70 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAuth() {
+      return request.auth != null;
+    }
+    function isAdmin() {
+      return isAuth() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+    function isInstructor() {
+      let role = get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+      return isAuth() && (role == 'instructor' || role == 'admin');
+    }
+    function isOwner(uid) {
+      return isAuth() && request.auth.uid == uid;
+    }
+
+    match /users/{userId} {
+      allow read: if isAuth() && (isOwner(userId) || isInstructor());
+      allow create: if isAuth();
+      allow update: if isOwner(userId) || isInstructor();
+      allow delete: if isAdmin();
+    }
+
+    match /courts/{courtId} {
+      allow read: if isAuth();
+      allow write: if isAdmin();
+    }
+
+    match /classes/{classId} {
+      allow read: if isAuth();
+      allow create, update, delete: if isInstructor();
+      match /students/{studentId} {
+        allow read: if isAuth();
+        allow write: if isInstructor();
+      }
+    }
+
+    match /bookings/{bookingId} {
+      allow read: if isAuth();
+      allow create, update, delete: if isInstructor();
+    }
+
+    match /championships/{champId} {
+      allow read: if isAuth();
+      allow create, update, delete: if isAdmin();
+      match /groups/{groupId} { allow read: if isAuth(); allow write: if isAdmin(); }
+      match /matches/{matchId} { allow read: if isAuth(); allow write: if isInstructor(); }
+      match /registrations/{regId} { allow read: if isAuth(); allow create: if isAuth(); allow delete: if isAdmin(); }
+    }
+
+    match /leagues/{leagueId} {
+      allow read: if isAuth();
+      allow create, update, delete: if isAdmin();
+      match /standings/{docId} { allow read: if isAuth(); allow write: if isAdmin(); }
+      match /rounds/{docId} { allow read: if isAuth(); allow write: if isInstructor(); }
+    }
+
+    match /payments/{paymentId} {
+      allow read: if isAuth() && (isOwner(resource.data.userId) || isInstructor());
+      allow create, update: if isInstructor();
+      allow delete: if isAdmin();
+    }
+
+    match /settings/{docId} {
+      allow read: if isAuth();
+      allow write: if isAdmin();
+    }
+  }
+}

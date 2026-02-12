@@ -1,0 +1,18 @@
+{
+  "name": "beach-flow-system",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Beach Flow System - O fluxo perfeito para sua arena de areia",
+  "scripts": {
+    "install:all": "cd backend && npm install && cd ../frontend && npm install",
+    "dev": "concurrently -n api,web -c blue,green \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build:frontend": "cd frontend && npm run build",
+    "test:backend": "cd backend && npm test",
+    "test:frontend": "cd frontend && npm test"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}

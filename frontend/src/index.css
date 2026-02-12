@@ -1,0 +1,24 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-sand-50 text-gray-800 font-sans antialiased;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* React Big Calendar overrides */
+.rbc-calendar {
+  @apply font-sans;
+}
+.rbc-today {
+  @apply bg-sand-100;
+}
+.rbc-event {
+  @apply bg-ocean-500 border-ocean-600;
+}
